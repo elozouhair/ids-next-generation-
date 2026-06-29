@@ -1,0 +1,193 @@
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    hostname: zookeeper
+    container_name: ids-zookeeper
+    mem_limit: 128m
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_HEAP_OPTS: "-Xmx64m -Xms32m"
+      ZOO_CFG_JAVA_OPTS: "-Xmx64m -Xms32m"
+    ports:
+      - "2181:2181"
+    networks:
+      - ids-network
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    hostname: kafka
+    container_name: ids-kafka
+    mem_limit: 512m
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_HEAP_OPTS: "-Xmx256m -Xms128m"
+    extra_hosts:
+      - "kafka:127.0.0.1"
+    ports:
+      - "29092:29092"
+      - "9092:9092"
+    networks:
+      - ids-network
+
+  producer:
+    build: ./kafka/producer
+    hostname: producer
+    container_name: ids-producer
+    mem_limit: 256m
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_TOPIC: network-traffic
+      ATTACK_RATIO: "0.3"
+      MESSAGES_PER_SECOND: "200"
+    networks:
+      - ids-network
+
+  postgres:
+    image: postgis/postgis:15-3.4
+    hostname: postgres
+    container_name: ids-postgres
+    mem_limit: 768m
+    shm_size: 256m
+    environment:
+      POSTGRES_DB: ids_db
+      POSTGRES_USER: ids_user
+      POSTGRES_PASSWORD: ids_password
+      POSTGRES_SHARED_BUFFERS: "256MB"
+      POSTGRES_EFFECTIVE_CACHE_SIZE: "512MB"
+      POSTGRES_MAINTENANCE_WORK_MEM: "64MB"
+      POSTGRES_WORK_MEM: "8MB"
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - ids-network
+
+  spark-master:
+    image: apache/spark:3.5.3
+    hostname: spark-master
+    container_name: ids-spark-master
+    mem_limit: 1280m
+    command: ["/bin/bash", "/opt/spark/app/docker-start.sh"]
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - ./spark:/opt/spark/app
+    environment:
+      SPARK_MASTER_HOST: spark-master
+      SPARK_MASTER_PORT: 7077
+      SPARK_MASTER_WEBUI_PORT: 8080
+      SPARK_DAEMON_MEMORY: "256m"
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep -q '[I]dsSparkJob' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+    networks:
+      - ids-network
+
+  spark-worker:
+    image: apache/spark:3.5.3
+    hostname: spark-worker
+    container_name: ids-spark-worker
+    mem_limit: 128m
+    depends_on:
+      - spark-master
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
+    volumes:
+      - ./spark:/opt/spark/app
+    environment:
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 256m
+      SPARK_WORKER_WEBUI_PORT: 8081
+      SPARK_DAEMON_MEMORY: "64m"
+    ports:
+      - "8081:8081"
+    networks:
+      - ids-network
+
+  backend:
+    build: ./backend
+    hostname: backend
+    container_name: ids-backend
+    mem_limit: 384m
+    depends_on:
+      - postgres
+      - kafka
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/ids_db
+      SPRING_DATASOURCE_USERNAME: ids_user
+      SPRING_DATASOURCE_PASSWORD: ids_password
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JAVA_OPTS: "-Xmx256m -Xms128m"
+    ports:
+      - "8082:8082"
+    networks:
+      - ids-network
+
+  frontend:
+    build: ./frontend
+    hostname: frontend
+    container_name: ids-frontend
+    mem_limit: 128m
+    depends_on:
+      - backend
+    ports:
+      - "3000:3000"
+    networks:
+      - ids-network
+
+  grafana:
+    image: grafana/grafana:11.0.0
+    hostname: grafana
+    container_name: ids-grafana
+    mem_limit: 128m
+    depends_on:
+      - postgres
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - ids-network
+
+  suricata:
+    image: jasonish/suricata:latest
+    hostname: suricata
+    container_name: ids-suricata
+    mem_limit: 128m
+    command: suricata -c /etc/suricata/suricata.yaml -i eth0 --set vars.address-groups.HOME_NET="[172.0.0.0/8,10.0.0.0/8,192.168.0.0/16]"
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+    volumes:
+      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml
+      - suricata-logs:/var/log/suricata
+    networks:
+      - ids-network
+
+networks:
+  ids-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  grafana-data:
+  suricata-logs:

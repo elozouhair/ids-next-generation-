@@ -1,0 +1,15 @@
+{
+  "queries": [
+    {
+      "datasource": {
+        "type": "postgres",
+        "uid": "PAF660F95C478FB94"
+      },
+      "rawSql": "SELECT attack_type as \"Type d'Attaque\", COUNT(*) as \"Total\" FROM alerts WHERE attack_type NOT IN ('BENIGN','Normal','Attack') GROUP BY attack_type ORDER BY \"Total\" DESC",
+      "format": "table",
+      "refId": "A"
+    }
+  ],
+  "from": "now-6h",
+  "to": "now"
+}
