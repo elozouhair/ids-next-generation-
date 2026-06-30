@@ -1,0 +1,598 @@
+{
+  "title": "IDS Advanced Overview",
+  "uid": "efpykne8kks8we",
+  "tags": ["ids", "security", "cicids", "advanced"],
+  "schemaVersion": 39,
+  "version": 4,
+  "timezone": "browser",
+  "refresh": "10s",
+  "time": { "from": "now-7d", "to": "now" },
+  "panels": [
+    {
+      "title": "Resume Global",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }
+    },
+    {
+      "title": "Trafic Total",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COALESCE(SUM(total_packets), 0) as value FROM traffic_stats",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "#3b82f6", "value": null }] }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "sparkline",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "title": "Trafic Normal",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COALESCE(SUM(normal_count), 0) as value FROM traffic_stats",
+        "format": "table"
+      }, {
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COALESCE(AVG(normal_percentage), 0) as \"Normal %\" FROM traffic_stats",
+        "format": "table",
+        "refId": "B"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "#22c55e", "value": null }] }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "sparkline",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "title": "Trafic Attaques",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COALESCE(SUM(attack_count), 0) as value FROM traffic_stats",
+        "format": "table"
+      }, {
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COALESCE(AVG(attack_percentage), 0) as \"Attaques %\" FROM traffic_stats",
+        "format": "table",
+        "refId": "B"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "#ef4444", "value": null }] }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "sparkline",
+        "textMode": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"] }
+      }
+    },
+    {
+      "title": "Taux d'Attaque",
+      "type": "gauge",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COALESCE(AVG(attack_percentage), 0) as value FROM traffic_stats",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [
+            { "color": "#22c55e", "value": null },
+            { "color": "#f59e0b", "value": 15 },
+            { "color": "#ef4444", "value": 30 }
+          ]}
+        }
+      },
+      "options": {
+        "showThresholdLabels": true,
+        "showThresholdMarkers": true
+      }
+    },
+    {
+      "title": "Alertes Detectees",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COUNT(*) as value FROM alerts",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "#f97316", "value": null }] }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "sparkline",
+        "textMode": "auto"
+      }
+    },
+    {
+      "title": "IP Sources Uniques",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT COUNT(DISTINCT src_ip) as value FROM alerts WHERE attack_type NOT IN ('BENIGN','Normal')",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [{ "color": "#8b5cf6", "value": null }] }
+        }
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "sparkline",
+        "textMode": "auto"
+      }
+    },
+
+    {
+      "title": "Analyse du Trafic",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }
+    },
+    {
+      "title": "Trafic : Attaques vs Normal (Temps Reel)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 6 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT timestamp as time, attack_count as \"Attaques\", normal_count as \"Normal\" FROM traffic_stats ORDER BY timestamp",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "fillOpacity": 30,
+            "drawStyle": "line",
+            "lineWidth": 1
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Attaques" }, "properties": [{ "id": "color", "value": { "fixed": "#ef4444" } }] },
+          { "matcher": { "id": "byName", "options": "Normal" }, "properties": [{ "id": "color", "value": { "fixed": "#3b82f6" } }] }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum", "max"] },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "title": "Geo Localisation des Attaques",
+      "type": "geomap",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 4 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT latitude, longitude, src_ip, attack_type, severity FROM attacks_geo WHERE latitude IS NOT NULL AND longitude IS NOT NULL AND attack_type NOT IN ('BENIGN','Normal','Attack') ORDER BY timestamp DESC LIMIT 1000",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "mapCenter": { "lat": 30, "lng": 0, "zoom": 1 },
+        "showLegend": true,
+        "tooltip": true,
+        "controls": { "showZoom": true, "showAttribution": false }
+      }
+    },
+    {
+      "title": "Repartition CICIDS2017",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 4 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT attack_type as \"Type\", cnt as \"Total\" FROM mv_attack_distribution WHERE attack_type NOT IN ('BENIGN','Normal','Attack') LIMIT 10",
+        "format": "table",
+        "refId": "A"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "palette-classic" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "DoS Hulk" }, "properties": [{ "id": "color", "value": { "fixed": "#ff4458" } }] },
+          { "matcher": { "id": "byName", "options": "Infiltration" }, "properties": [{ "id": "color", "value": { "fixed": "#ff922b" } }] },
+          { "matcher": { "id": "byName", "options": "PortScan" }, "properties": [{ "id": "color", "value": { "fixed": "#ffd43b" } }] },
+          { "matcher": { "id": "byName", "options": "Brute Force" }, "properties": [{ "id": "color", "value": { "fixed": "#845ef7" } }] },
+          { "matcher": { "id": "byName", "options": "DDoS" }, "properties": [{ "id": "color", "value": { "fixed": "#339af0" } }] },
+          { "matcher": { "id": "byName", "options": "Bot" }, "properties": [{ "id": "color", "value": { "fixed": "#20c997" } }] },
+          { "matcher": { "id": "byName", "options": "Web Attack" }, "properties": [{ "id": "color", "value": { "fixed": "#f06595" } }] },
+          { "matcher": { "id": "byName", "options": "SQL Injection" }, "properties": [{ "id": "color", "value": { "fixed": "#cc5de8" } }] },
+          { "matcher": { "id": "byName", "options": "XSS" }, "properties": [{ "id": "color", "value": { "fixed": "#fab005" } }] },
+          { "matcher": { "id": "byName", "options": "MITM" }, "properties": [{ "id": "color", "value": { "fixed": "#e64980" } }] }
+        ]
+      },
+      "options": {
+        "reduceOptions": { "values": true, "calcs": ["lastNotNull"], "fields": "/^Total$/" },
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent", "name"] },
+        "pieType": "donut",
+        "tooltip": { "mode": "single" }
+      }
+    },
+
+    {
+      "title": "Evolution Types d'Attaques (Temps Reel)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT hour as time, cnt as \"DoS Hulk\" FROM mv_attack_hourly WHERE attack_type='DoS Hulk' ORDER BY hour",
+        "format": "time_series",
+        "refId": "Hulk"
+      }, {
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT hour as time, cnt as \"Infiltration\" FROM mv_attack_hourly WHERE attack_type='Infiltration' ORDER BY hour",
+        "format": "time_series",
+        "refId": "Inf"
+      }, {
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT hour as time, cnt as \"PortScan\" FROM mv_attack_hourly WHERE attack_type='PortScan' ORDER BY hour",
+        "format": "time_series",
+        "refId": "Port"
+      }, {
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT hour as time, cnt as \"Brute Force\" FROM mv_attack_hourly WHERE attack_type='Brute Force' ORDER BY hour",
+        "format": "time_series",
+        "refId": "BF"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "fillOpacity": 30,
+            "stacking": { "mode": "normal" },
+            "drawStyle": "line",
+            "lineWidth": 1
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "DoS Hulk" }, "properties": [{ "id": "color", "value": { "fixed": "#ff4458" } }] },
+          { "matcher": { "id": "byName", "options": "Infiltration" }, "properties": [{ "id": "color", "value": { "fixed": "#ff922b" } }] },
+          { "matcher": { "id": "byName", "options": "PortScan" }, "properties": [{ "id": "color", "value": { "fixed": "#ffd43b" } }] },
+          { "matcher": { "id": "byName", "options": "Brute Force" }, "properties": [{ "id": "color", "value": { "fixed": "#845ef7" } }] }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["sum", "max"] },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "title": "Distribution Protocoles",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT protocol as \"Protocol\", cnt as \"Total\" FROM mv_protocol_stats WHERE protocol IS NOT NULL ORDER BY cnt DESC",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "fixed" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "TCP" }, "properties": [{ "id": "color", "value": { "fixed": "#ef4444" } }] },
+          { "matcher": { "id": "byName", "options": "UDP" }, "properties": [{ "id": "color", "value": { "fixed": "#f59e0b" } }] },
+          { "matcher": { "id": "byName", "options": "ICMP" }, "properties": [{ "id": "color", "value": { "fixed": "#22c55e" } }] }
+        ]
+      },
+      "options": {
+        "reduceOptions": { "values": true, "calcs": ["lastNotNull"], "fields": "/^Total$/" },
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] },
+        "pieType": "pie",
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "title": "Top 10 IPs Sources",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT src_ip, cnt FROM mv_top_ips LIMIT 10",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "continuous-RedYlOrGr" }
+        }
+      },
+      "options": {
+        "orientation": "horizontal",
+        "showValue": "always",
+        "legend": { "displayMode": "hidden" }
+      }
+    },
+
+    {
+      "title": "Rythme d'Alertes (/minute) - Temps Reel",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 20 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT date_trunc('minute', timestamp) as time, COUNT(*) as \"Alertes/min\" FROM alerts GROUP BY date_trunc('minute', timestamp) ORDER BY time",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "steps": [
+            { "color": "#22c55e", "value": null },
+            { "color": "#f59e0b", "value": 500 },
+            { "color": "#ef4444", "value": 1000 }
+          ]},
+          "custom": {
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "fillOpacity": 50,
+            "drawStyle": "bars",
+            "lineWidth": 1
+          }
+        }
+      },
+      "options": {
+        "legend": { "displayMode": "hidden" },
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "title": "Repartition Severite",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 20 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT severity as \"Severite\", COUNT(*) as \"Total\" FROM alerts WHERE severity IS NOT NULL AND attack_type NOT IN ('BENIGN','Normal') GROUP BY severity ORDER BY \"Total\" DESC",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "color": { "mode": "fixed" }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "high" }, "properties": [{ "id": "color", "value": { "fixed": "#dc2626" } }] },
+          { "matcher": { "id": "byName", "options": "medium" }, "properties": [{ "id": "color", "value": { "fixed": "#f59e0b" } }] },
+          { "matcher": { "id": "byName", "options": "low" }, "properties": [{ "id": "color", "value": { "fixed": "#22c55e" } }] }
+        ]
+      },
+      "options": {
+        "reduceOptions": { "values": true, "calcs": ["lastNotNull"], "fields": "/^Total$/" },
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] },
+        "pieType": "pie",
+        "tooltip": { "mode": "single" }
+      }
+    },
+    {
+      "title": "Pourcentage Attaque (Timeline)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 20 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT timestamp as time, attack_percentage as \"Attaques %\", normal_percentage as \"Normal %\" FROM traffic_stats ORDER BY timestamp",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "fillOpacity": 20,
+            "drawStyle": "line",
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Attaques %" }, "properties": [{ "id": "color", "value": { "fixed": "#ef4444" } }] },
+          { "matcher": { "id": "byName", "options": "Normal %" }, "properties": [{ "id": "color", "value": { "fixed": "#22c55e" } }] }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["mean", "last"] },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+
+    {
+      "title": "Details et Performance",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 }
+    },
+    {
+      "title": "Alertes Recentes Temps Reel",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 29 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT timestamp as \"horodatage\", attack_type as \"type attaque\", src_ip as \"ip source\", dst_ip as \"ip dest\", protocol as \"proto\", severity as \"severite\" FROM alerts ORDER BY timestamp DESC LIMIT 25",
+        "format": "table"
+      }],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "severite" }, "properties": [
+            { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } },
+            { "id": "mappings", "value": [
+              { "type": "value", "options": { "high": { "text": "HAUTE", "color": "#dc2626" }, "medium": { "text": "MOYENNE", "color": "#f59e0b" }, "low": { "text": "FAIBLE", "color": "#22c55e" } } }
+            ]}
+          ]},
+          { "matcher": { "id": "byName", "options": "type attaque" }, "properties": [
+            { "id": "custom.cellOptions", "value": { "type": "color-text", "mode": "basic" } }
+          ]}
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "footer": { "show": false },
+        "sortBy": [{ "displayName": "horodatage", "desc": true }]
+      }
+    },
+    {
+      "title": "Performance Modele ML",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 28 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT timestamp as time, ROUND(accuracy::numeric * 100, 1) as \"Accuracy\", ROUND(precision::numeric * 100, 1) as \"Precision\", ROUND(recall::numeric * 100, 1) as \"Recall\", ROUND(f1_score::numeric * 100, 1) as \"F1 Score\" FROM model_metrics ORDER BY timestamp",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": {
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "fillOpacity": 10,
+            "drawStyle": "line",
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Accuracy" }, "properties": [{ "id": "color", "value": { "fixed": "#22c55e" } }] },
+          { "matcher": { "id": "byName", "options": "Precision" }, "properties": [{ "id": "color", "value": { "fixed": "#3b82f6" } }] },
+          { "matcher": { "id": "byName", "options": "Recall" }, "properties": [{ "id": "color", "value": { "fixed": "#f59e0b" } }] },
+          { "matcher": { "id": "byName", "options": "F1 Score" }, "properties": [{ "id": "color", "value": { "fixed": "#a855f7" } }] }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["min", "max", "mean", "last"] },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+    {
+      "title": "Volume Trafic par Heure (Min/Max/Moy)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 28 },
+      "targets": [{
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT date_trunc('hour', timestamp) as time, AVG(total_packets) as \"Moyen\", MAX(total_packets) as \"Max\", MIN(total_packets) as \"Min\" FROM traffic_stats GROUP BY date_trunc('hour', timestamp) ORDER BY time",
+        "format": "time_series"
+      }],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "custom": {
+            "lineInterpolation": "smooth",
+            "showPoints": "never",
+            "fillOpacity": 20,
+            "drawStyle": "line",
+            "lineWidth": 2
+          }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Max" }, "properties": [{ "id": "color", "value": { "fixed": "#ef4444" } }, { "id": "custom.fillOpacity", "value": 5 }, { "id": "custom.lineStyle", "value": { "fill": "dash" } }] },
+          { "matcher": { "id": "byName", "options": "Min" }, "properties": [{ "id": "color", "value": { "fixed": "#22c55e" } }, { "id": "custom.fillOpacity", "value": 5 }, { "id": "custom.lineStyle", "value": { "fill": "dash" } }] },
+          { "matcher": { "id": "byName", "options": "Moyen" }, "properties": [{ "id": "color", "value": { "fixed": "#3b82f6" } }, { "id": "custom.lineWidth", "value": 3 }] }
+        ]
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "right", "calcs": ["min", "max", "mean"] },
+        "tooltip": { "mode": "multi" }
+      }
+    },
+
+    {
+      "title": " ",
+      "type": "text",
+      "gridPos": { "h": 2, "w": 24, "x": 0, "y": 36 },
+      "options": {
+        "mode": "html",
+        "content": "<div style='display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);border-radius:8px;padding:10px 20px;font-size:13px;border:1px solid #2a2a4e;'><div style='display:flex;align-items:center;gap:15px;flex-wrap:wrap;'><div style='display:flex;align-items:center;gap:6px;'><span style='color:#22c55e;font-size:16px;'>●</span><span style='color:#8892b0;'>Systeme:</span><strong style='color:#22c55e;'>OK</strong></div><div style='display:flex;align-items:center;gap:6px;'><span style='color:#22c55e;font-size:16px;'>●</span><span style='color:#8892b0;'>Kafka:</span><strong style='color:#22c55e;'>Connecte</strong></div><div style='display:flex;align-items:center;gap:6px;'><span style='color:#22c55e;font-size:16px;'>●</span><span style='color:#8892b0;'>Spark:</span><strong style='color:#22c55e;'>Actif</strong></div><div style='display:flex;align-items:center;gap:6px;'><span style='color:#22c55e;font-size:16px;'>●</span><span style='color:#8892b0;'>PostgreSQL:</span><strong style='color:#22c55e;'>Connecte</strong></div><div style='display:flex;align-items:center;gap:6px;'><span style='color:#60a5fa;font-size:16px;'>●</span><span style='color:#8892b0;'>Modele IA:</span><strong style='color:#60a5fa;'>ML Actif</strong></div><div style='display:flex;align-items:center;gap:6px;'><span style='color:#8892b0;'>Refresh:</span><strong style='color:#60a5fa;'>10s</strong></div><div style='display:flex;align-items:center;gap:6px;'><span style='color:#8892b0;'>Donnees:</span><strong style='color:#60a5fa;'>Temps Reel</strong></div></div><div><span style='color:#4a5568;font-size:11px;'>CICIDS2017 | Apache Spark ML | PostGIS</span></div></div>"
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "attack_type",
+        "type": "query",
+        "query": "SELECT DISTINCT attack_type FROM alerts WHERE attack_type NOT IN ('BENIGN','Normal') ORDER BY attack_type",
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "label": "Type d'attaque",
+        "includeAll": true,
+        "allValue": "",
+        "multi": true
+      },
+      {
+        "name": "time_range",
+        "type": "interval",
+        "query": "10s,30s,1m,5m,10m,30m,1h,3h,6h,12h,24h",
+        "label": "Intervalle",
+        "auto": true,
+        "auto_count": 30,
+        "auto_min": "10s"
+      }
+    ]
+  },
+  "annotations": {
+    "list": [
+      {
+        "name": "Model Retrain",
+        "type": "postgres",
+        "datasource": { "type": "postgres", "uid": "PAF660F95C478FB94" },
+        "rawSql": "SELECT timestamp as time, CONCAT('Training batch: ', batch_id) as text FROM model_metrics WHERE accuracy > 0.95 ORDER BY timestamp",
+        "enable": true,
+        "iconColor": "#a855f7"
+      }
+    ]
+  }
+}
