@@ -1,0 +1,10 @@
+val df = spark.read.parquet("/opt/spark/app/training_data")
+println("Label distribution:")
+df.groupBy("true_label").count().show()
+println("Attack feature means:")
+val features = Seq("flow_bytes_per_sec","flow_packets_per_sec","syn_flag_count","flow_duration","total_fwd_packets","total_backward_packets")
+val exprs = features.flatMap(c => Seq(s"avg($c) as avg_$c", s"stddev($c) as std_$c"))
+df.filter("true_label = 1.0").selectExpr(exprs: _*).show(false)
+println("Normal feature means:")
+df.filter("true_label = 0.0").selectExpr(exprs: _*).show(false)
+// done

@@ -1,0 +1,10 @@
+val df = spark.read.parquet("/opt/spark/app/training_data")
+println("Schema:")
+df.printSchema()
+println("Sample rows:")
+df.select("flow_bytes_per_sec", "syn_flag_count", "flow_packets_per_sec", "true_label").show(10, false)
+println("Label distribution:")
+df.groupBy("true_label").count().show()
+println("Feature stats:")
+df.selectExpr("min(flow_bytes_per_sec)", "max(flow_bytes_per_sec)", "avg(flow_bytes_per_sec)", "min(syn_flag_count)", "max(syn_flag_count)", "avg(syn_flag_count)").show()
+:quit

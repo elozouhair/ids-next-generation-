@@ -1,0 +1,65 @@
+%YAML 1.1
+---
+
+vars:
+  address-groups:
+    HOME_NET: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12]"
+    EXTERNAL_NET: "!$HOME_NET"
+  port-groups:
+    HTTP_PORTS: "80"
+    SHELLCODE_PORTS: "!80"
+    SSH_PORTS: "22"
+
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  - emerging-exploit.rules
+  - emerging-scan.rules
+  - emerging-dos.rules
+  - emerging-web_server.rules
+  - emerging-botcc.rules
+
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config
+
+pcap:
+  - interface: eth0
+    buffer-size: 256000
+    bpf-filter: ""
+
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert
+        - http
+        - dns
+        - flow
+        - anomaly:
+            enabled: yes
+        - stats:
+            totals: yes
+            threads: no
+
+app-layer:
+  protocols:
+    tls:
+      enabled: yes
+    http:
+      enabled: yes
+    ssh:
+      enabled: yes
+
+logging:
+  default-log-level: info
+  outputs:
+    - console:
+        enabled: no
+    - file:
+        enabled: yes
+        filename: /var/log/suricata/suricata.log
+
+anomaly:
+  threshold: medium
+  protocols: all
